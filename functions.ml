@@ -87,3 +87,35 @@ let rec der_list (l: 'a list) : 'a =
 let rec remplir_segment (m: int) ((i,j,k): case) : case list = 
 	if m = 1 then [(i,j,k)] 
 	else (i,j,k)::(remplir_segment (m-1) (i,j+1,k-1)) ;;
+
+
+(* Q12. *)
+(* Recursive equations: remplir_triangle_bas(m, (i,j,k)) = 
+		{ m ∈ N | 
+			{ remplir_segment(m, (i,j,k)) U remplir_triangle_bas(m-1, (i-1,j+1,k)) if m>1
+				[(i,j,k)]	else 
+		}
+*)
+
+let rec remplir_triangle_bas (m: int) ((i,j,k): case) : case list = 
+	if m>1 then remplir_segment m (i,j,k) @ 
+		remplir_triangle_bas (m-1) (i-1,j+1,k)
+	else [(i,j,k)] ;;
+
+(* Q13 *)
+(* Recursive equations: remplir_triangle_haut(m, (i,j,k)) = 
+		{ m ∈ N | 
+			{ remplir_segment(m, (i,j,k)) U remplir_triangle_haut(m-1, (i+1,j,k-1)) if m>1
+				[(i,j,k)]	else 
+		}
+*)
+let rec remplir_triangle_haut (m: int) ((i,j,k): case) : case list = 
+	if m>1 then remplir_segment m (i,j,k) @ 
+		remplir_triangle_haut (m-1) (i+1,j,k-1)
+	else [(i,j,k)] ;;
+
+(* Q14. *)
+let rec colorie (cl:couleur) (l: case list) : case_coloree list =
+	match l with
+	| []-> []
+	| c::r -> (c,cl) :: colorie cl r ;;
