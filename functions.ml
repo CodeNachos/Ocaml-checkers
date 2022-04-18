@@ -119,3 +119,30 @@ let rec colorie (cl:couleur) (l: case list) : case_coloree list =
 	match l with
 	| []-> []
 	| c::r -> (c,cl) :: colorie cl r ;;
+	
+(* Q15. *)
+let  tourner_confif (c:configuration):configuration = let (ccol,player_list,d) = c in 
+  let rec count_players (pl:couleur list):int = match pl with
+    |[] -> 0
+    |p::lp -> 1 + count_players lp
+  and tourner_ccol (lcol:case_coloree list) (m:int):case_coloree list = match lcol with
+    |[] -> []
+    |el::lp ->  if m = 1 then let (case,color) = el in let new_case = tourner_case m case and new_color = 
+    match color with
+    |Vert -> Marron
+    |Marron -> Bleu
+    |Bleu -> Noir
+    |Noir -> Rouge
+    |Rouge -> Jaune
+    |Jaune -> Vert  
+  in (new_case,new_color)::tourner_ccol lp m else if m = 2 then let (case,color) = el in let new_case = tourner_case m case 
+  and new_color = match color with
+    |Vert -> Rouge
+    |Rouge -> Jaune
+    |Jaune -> Vert
+  in (new_case,new_color)::tourner_ccol lp m else if m = 3 then let (case,color) = el in let new_case = tourner_case m case and
+  new_color = match color with
+    |Vert -> Jaune
+    |Jaune -> Vert
+  in (new_case,new_color)::tourner_ccol lp m else failwith "Incorrect number of players"
+in let mp = count_players player_list in (tourner_ccol ccol (6/mp), tourner_list player_list,d );;
