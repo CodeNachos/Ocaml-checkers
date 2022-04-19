@@ -148,7 +148,7 @@ let  tourner_confif (c:configuration):configuration = let (ccol,player_list,d) =
 in let mp = count_players player_list in (tourner_ccol ccol (6/mp), tourner_list player_list,d );;
 
 (*Q.16 - Rafael)
----
+---*)
 (*Q.17*)
 
 let quelle_couleur (c:case)(conf:configuration):couleur = let (ccol,_,_) = conf in 
