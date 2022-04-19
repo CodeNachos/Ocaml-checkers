@@ -146,3 +146,36 @@ let  tourner_confif (c:configuration):configuration = let (ccol,player_list,d) =
     |Jaune -> Vert
   in (new_case,new_color)::tourner_ccol lp m else failwith "Incorrect number of players"
 in let mp = count_players player_list in (tourner_ccol ccol (6/mp), tourner_list player_list,d );;
+
+(*Q.16 - Rafael)
+---
+(*Q.17*)
+
+let quelle_couleur (c:case)(conf:configuration):couleur = let (ccol,_,_) = conf in 
+  associe c ccol Libre;;
+(quelle_couleur) (-1,4,-3) c1;;
+
+(*Q.18*)
+
+let supprime_dans_config (conf:configuration)(c:case):configuration = 
+  if (quelle_couleur c conf) = Libre then conf else let (ccol,pl,d) = conf in
+    let rec search_case (casecol:case_coloree list)(c:case):case_coloree list = match casecol with
+      |[] -> failwith "can't be empty"
+      |(case,col)::lp -> if c = case then lp else (case,col)::search_case lp c
+    in (search_case ccol c, pl,d);;
+
+
+(*Q.19*)
+let est_coup_valide (conf:configuration)(co:coup):bool = let (ccol,pl,d) = conf in match co with
+  |Du (c1,c2) -> (sont_cases_voisines c1 c2) && (quelle_couleur c1 conf)<>Libre && 
+                 (quelle_couleur c2 conf ) = Libre && (est_dans_losange c2 d)
+  |Sm lp -> failwith "Sauts multiples non implementés";;
+(*Q.20*)
+let appliquer_coup (conf:configuration)(cp:coup):configuration = match cp with
+  |Du (c1,c2) -> let coul = quelle_couleur c1 conf and conf2 = supprime_dans_config conf c1 in 
+    let (ccol,pl,d) = conf2 in ((c2,coul)::ccol,pl,d)
+  |Sm lp -> failwith "Sauts multiples non implementés";;
+
+(*Q.21*)
+let mettre_a_jour_conf (conf:configuration) (cp:coup):configuration = 
+  if est_coup_valide conf cp then appliquer_coup conf cp else failwith "Bro you did something wrong";; 
