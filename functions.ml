@@ -179,3 +179,21 @@ let appliquer_coup (conf:configuration)(cp:coup):configuration = match cp with
 (*Q.21*)
 let mettre_a_jour_conf (conf:configuration) (cp:coup):configuration = 
   if est_coup_valide conf cp then appliquer_coup conf cp else failwith "Bro you did something wrong";; 
+  
+ (* Q.22 *)
+ let est_libre_seg (c1:case)(c2:case)(conf:configuration):bool = let (ci,cj,ck) = c1 in let ((iv,jv,kv),d) = vec_et_dist c1 c2 in
+  let rec est_libre_case (cs:case)(dis:int):bool = let (i,j,k) = cs in if dis = 0 then true else (quelle_couleur cs conf) = Libre &&
+  est_libre_case (i+iv,j+jv,k+kv)(dis-1)
+  in est_libre_case (ci+iv,cj+jv,ck+kv)(d-1);;   
+
+(*Q.23*)
+
+let est_saut (c1:case)(c2:case)(conf:configuration):bool = let (_,_,d) = conf in (sont_cases_voisines c1 c2) && (est_dans_losange c2 d) 
+&& (quelle_couleur c2 conf = Libre) && (quelle_couleur c1 conf <> Libre);;
+
+(*Q.24*)
+
+let rec est_saut_multiple (c:case list)(conf:configuration):bool = match c with
+  |[]-> failwith "Can't operate on an empty list"
+  |a::[] -> true
+  |a::(b::lp) -> est_saut a b conf && est_saut_multiple (b::lp) conf;; 
