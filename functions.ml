@@ -188,8 +188,8 @@ let mettre_a_jour_conf (conf:configuration) (cp:coup):configuration =
 
 (*Q.23*)
 
-let est_saut (c1:case)(c2:case)(conf:configuration):bool = let (_,_,d) = conf in (sont_cases_voisines c1 c2) && (est_dans_losange c2 d) 
-&& (quelle_couleur c2 conf = Libre) && (quelle_couleur c1 conf <> Libre);;
+let est_saut (c1:case)(c2:case)(conf:configuration):bool = let (_,_,dim) = conf and (_,dist) = vec_et_dist c1 c2 in
+  (est_dans_losange c2 dim) && (dist = 2) && est_libre_seg c1 c2 conf;;
 
 (*Q.24*)
 
