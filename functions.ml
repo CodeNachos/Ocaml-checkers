@@ -188,12 +188,12 @@ let mettre_a_jour_conf (conf:configuration) (cp:coup):configuration =
 
 (*Q.23*)
 
-let est_saut (c1:case)(c2:case)(conf:configuration):bool = let (_,_,dim) = conf and (_,dist) = vec_et_dist c1 c2 in
-  (est_dans_losange c2 dim) && (dist = 2) && est_libre_seg c1 c2 conf;;
+let est_saut (c1:case)(c2:case)(conf:configuration):bool = let (_,dist) = vec_et_dist c1 c2 in
+ (dist = 2) && est_libre_seg c1 c2 conf;;
 
 (*Q.24*)
 let rec est_saut_multiple (c:case list)(conf:configuration):bool = match c with
   |[]-> failwith "Can't operate on an empty list"
-  |a::[] -> failwith "There are no sauts to do"
-  |a::(b::[]) -> let (_,dis) = vec_et_dist a b in (est_libre_seg a b conf) && (dis=2)
-  |a::(b::lp) -> est_saut a b conf && est_saut_multiple (b::lp) conf;;  
+  |a::[] -> failwith "You need two cases at least to do a jump"
+  |a::(b::[]) -> true
+  |a::(b::lp) -> est_saut a b conf && est_saut_multiple (b::lp) conf;; 
