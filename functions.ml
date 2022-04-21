@@ -192,8 +192,8 @@ let est_saut (c1:case)(c2:case)(conf:configuration):bool = let (_,_,dim) = conf 
   (est_dans_losange c2 dim) && (dist = 2) && est_libre_seg c1 c2 conf;;
 
 (*Q.24*)
-
 let rec est_saut_multiple (c:case list)(conf:configuration):bool = match c with
   |[]-> failwith "Can't operate on an empty list"
-  |a::[] -> true
-  |a::(b::lp) -> est_saut a b conf && est_saut_multiple (b::lp) conf;; 
+  |a::[] -> failwith "There are no sauts to do"
+  |a::(b::[]) -> let (_,dis) = vec_et_dist a b in (est_libre_seg a b conf) && (dis=2)
+  |a::(b::lp) -> est_saut a b conf && est_saut_multiple (b::lp) conf;;  
