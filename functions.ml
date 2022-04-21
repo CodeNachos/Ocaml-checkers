@@ -197,3 +197,19 @@ let rec est_saut_multiple (c:case list)(conf:configuration):bool = match c with
   |a::[] -> failwith "You need two cases at least to do a jump"
   |a::(b::[]) -> est_saut a b conf
   |a::(b::lp) -> est_saut a b conf && est_saut_multiple (b::lp) conf;; 
+  
+  (*Q.25*)
+  let est_coup_valide_sauts (conf:configuration)(co:coup):bool = let (ccol,pl,d) = conf in match co with
+  |Du (c1,c2) -> (sont_cases_voisines c1 c2) && (quelle_couleur c1 conf)<>Libre && 
+                 (quelle_couleur c2 conf ) = Libre && (est_dans_losange c2 d)
+  |Sm lp -> let final_el = der_list lp in (est_saut_multiple lp conf) && (est_dans_losange final_el d);;
+
+let appliquer_coup_sauts (conf:configuration)(cp:coup):configuration = match cp with
+  |Du (c1,c2) -> let coul = quelle_couleur c1 conf and conf2 = supprime_dans_config conf c1 in 
+    let (ccol,pl,d) = conf2 in ((c2,coul)::ccol,pl,d)
+  |Sm (a::lp) ->let coul = quelle_couleur a conf and final_el = der_list lp and (ccol2,pl2,d2) = supprime_dans_config conf a in 
+      ((final_el,coul)::ccol2,pl2,d2);;
+(appliquer_coup) c1 cp1;;
+
+let mettre_a_jour_conf_sauts (conf:configuration) (cp:coup):configuration = 
+  if est_coup_valide_sauts conf cp then appliquer_coup_sauts conf cp else failwith "Bro you did something wrong";; 
