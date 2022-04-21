@@ -189,11 +189,11 @@ let mettre_a_jour_conf (conf:configuration) (cp:coup):configuration =
 (*Q.23*)
 
 let est_saut (c1:case)(c2:case)(conf:configuration):bool = let (_,dist) = vec_et_dist c1 c2 in
- (dist = 2) && est_libre_seg c1 c2 conf;;
+  (dist = 2) && not (est_libre_seg c1 c2 conf) && ((quelle_couleur c2 conf) = Libre);;
 
 (*Q.24*)
 let rec est_saut_multiple (c:case list)(conf:configuration):bool = match c with
   |[]-> failwith "Can't operate on an empty list"
   |a::[] -> failwith "You need two cases at least to do a jump"
-  |a::(b::[]) -> true
+  |a::(b::[]) -> est_saut a b conf
   |a::(b::lp) -> est_saut a b conf && est_saut_multiple (b::lp) conf;; 
