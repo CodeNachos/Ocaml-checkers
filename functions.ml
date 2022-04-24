@@ -147,6 +147,19 @@ let  tourner_confif (c:configuration):configuration = let (ccol,player_list,d) =
   in (new_case,new_color)::tourner_ccol lp m else failwith "Incorrect number of players"
 in let mp = count_players player_list in (tourner_ccol ccol (6/mp), tourner_list player_list,d );;
 
+(* Q15. R version *)
+let tourner_config ((ccl, cl, dim)): configuration =
+	let rec list_lenght (l: 'a list): int =
+		 match l with
+		 | [] -> 0
+		 | e::r -> 1 + list_lenght r
+	in let m = 6/(list_lenght cl)
+	in let rec tourner_ccl (l:case_coloree list): case_coloree list =
+		match l with
+		| [] -> []
+		| (c,col)::r -> (tourner_case m c, col)::(tourner_ccl r)
+	in (tourner_ccl ccl, tourner_list cl, dim) ;;
+
 (*Q.16 - Rafael)
 ---*)
 (*Q.17*)
