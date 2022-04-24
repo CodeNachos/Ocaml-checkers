@@ -160,8 +160,19 @@ let tourner_config ((ccl, cl, dim)): configuration =
 		| (c,col)::r -> (tourner_case m c, col)::(tourner_ccl r)
 	in (tourner_ccl ccl, tourner_list cl, dim) ;;
 
-(*Q.16 - Rafael)
----*)
+(*Q.16 - Rafael *)
+let remplir_init (lj: couleur list) (dim: dimension): configuration =
+	let case_init = ((-(dim+1)), 1, dim)
+	in let rec remplir_init_acc (acc: couleur list) ((ccl,cl,dim):  configuration): configuration =
+		match acc with
+		| [] -> failwith "Not enought players"
+		| c::r -> if r = [] then tourner_config (colorie c (remplir_triangle_bas dim case_init) @ ccl, cl, dim)
+		else remplir_init_acc r (tourner_config (colorie c (remplir_triangle_bas dim case_init) @ ccl,cl,dim))
+	in let (head,tail) = match lj with 
+											| [] -> failwith "Empty player list"
+											| c::r -> (c,r)
+	in remplir_init_acc tail (tourner_config (colorie head (remplir_triangle_bas dim case_init), lj, dim)) ;;
+
 (*Q.17*)
 
 let quelle_couleur (c:case)(conf:configuration):couleur = let (ccol,_,_) = conf in 
