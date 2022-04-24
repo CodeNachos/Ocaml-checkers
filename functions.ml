@@ -121,7 +121,7 @@ let rec colorie (cl:couleur) (l: case list) : case_coloree list =
 	| c::r -> (c,cl) :: colorie cl r ;;
 	
 (* Q15. *)
-let  tourner_confif (c:configuration):configuration = let (ccol,player_list,d) = c in 
+let  tourner_config (c:configuration):configuration = let (ccol,player_list,d) = c in 
   let rec count_players (pl:couleur list):int = match pl with
     |[] -> 0
     |p::lp -> 1 + count_players lp
