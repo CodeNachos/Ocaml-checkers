@@ -390,14 +390,6 @@ let gagne ((ccl,pl,dim): configuration): bool =
 	score (ccl,pl,dim) = score_gagnant dim ;;
 
 (* Q28. *)
-(* 
-	retourne couleur du gagneur -> libre if none
-	tourner config at each turn (coup)
-	1) mettre a jour config
-	2) touner config
-	3) repetir pour chaque element de la liste
-	4) verifier scores 
-*)
 let est_partie (conf:configuration) (cpl:coup list): couleur =
 	(* Compute all coups and update conf in order (left to right) *)
 	let (fin_ccl,pl,dim) = List.fold_left (
@@ -407,7 +399,11 @@ let est_partie (conf:configuration) (cpl:coup list): couleur =
 	in let conf = (fin_ccl,pl,dim) 
 	(* Iterates through list of player from the 2nd veryfing if they have won *)
 	in let winner = List.fold_left ( 
+			(* takes the couple (acc_conf,acc_winner) containing the track of the
+				rotated conf and the actual winner if there is. col is the player 
+				fold_left is iterating at *)
 			fun (acc_conf, acc_winner) col ->
+				(* keeps track of rotations *)
 				let conf = tourner_config acc_conf in 
 					if gagne (conf) then (conf, col)
 					else if acc_winner <> Libre then (conf,acc_winner) 
