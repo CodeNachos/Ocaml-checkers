@@ -244,34 +244,45 @@ let rec list_lenght (l: 'a list): int =
 
 (* Q15. *)
 let tourner_config ((ccl, cl, dim)): configuration =
+	(* counts the number of players *)
 	let rec list_lenght (l: 'a list): int =
 		 match l with
 		 | [] -> 0
 		 | e::r -> 1 + list_lenght r
+	(* computes the number of 6th of tours to change protagonist *)
 	in let m = 6/(list_lenght cl)
+	(* rotationg configuration by rotating each case *)
 	in let rec tourner_ccl (l:case_coloree list): case_coloree list =
 		match l with
 		| [] -> []
 		| (c,col)::r -> (tourner_case m c, col)::(tourner_ccl r)
+	(* returns the configuration with every case rotated 
+		 and the rotated list of players *)
 	in (tourner_ccl ccl, tourner_list cl, dim) ;;
 
 (* Q16. *)
-let remplir_init (lj: couleur list) (dim: dimension): configuration =
+let remplir_init (pl: couleur list) (dim: dimension): configuration =
+	(* case_init is the top left case of the botton triangle 
+		 in the board of dimension dim *)
 	let case_init = ((-(dim+1)), 1, dim) in
-	let rec remplir_init_acc (acc: couleur list) ((ccl,cl,dim): configuration): configuration =
+	(* triangleBas_coloree returns the botton triangle 
+		 from case_init colored with color c *)
+	let triangleBas_coloree (c:couleur) = colorie c (remplir_triangle_bas dim case_init) in
+	let rec get_conf_init (acc: couleur list) ((ccl,cl,dim): configuration): configuration =
 		match acc with
-		| [] -> failwith "Not enought players"
-		| c::r -> if r = [] then 
-								tourner_config (colorie c (remplir_triangle_bas dim case_init) @ ccl, cl, dim)
-							else 
-								remplir_init_acc r (tourner_config (colorie c (remplir_triangle_bas dim case_init) @ ccl,cl,dim))
-	in let (head,tail) = 
-		match lj with 
-			| [] -> failwith "Empty player list"
+		| [c]  -> tourner_config (triangleBas_coloree c @ ccl, cl, dim)
+		| c::r -> get_conf_init r (tourner_config 
+																(triangleBas_coloree c @ ccl,cl,dim)
+															)
+		| [] -> ([],pl,dim) (* This case avoids non exhaustive mathching warning *)
+	in let (p1,rpl) = 
+		match pl with 
+			| [] -> failwith "Empty player list, possible number of players : 1,2,3,6"
 			| c::r -> (c,r)
-	in remplir_init_acc tail (tourner_config (colorie head (remplir_triangle_bas dim case_init), lj, dim)) ;;
-
-affiche (remplir_init [Code "Ali";Code "Bob";Code "Jim"] 3);;
+	in if rpl <> [] then
+				get_conf_init rpl (tourner_config (triangleBas_coloree p1, pl, dim))
+		 else (triangleBas_coloree p1,pl,dim) ;;
+affiche (remplir_init [Code "Max"; Code "Raf"] 3);;
 
 (*Q.17*)
 let quelle_couleur (c:case)(conf:configuration):couleur = 
@@ -294,7 +305,7 @@ let est_coup_valide (conf:configuration)(co:coup):bool =
 	let (ccol,pl,d) = conf in 
 	match co with
 	|Du (c1,c2) -> (sont_cases_voisines c1 c2) && 
-								 (quelle_couleur c1 conf)= der_list(tourner_list pl) && 
+								 (quelle_couleur c1 conf) = der_list(tourner_list pl) && 
 							   (quelle_couleur c2 conf ) = Libre && 
 								 (est_dans_losange c2 d)
 	|Sm lp 			-> failwith "Sauts multiples non implementés" ;;
@@ -371,7 +382,7 @@ let mettre_a_jour_conf (conf:configuration) (cp:coup):configuration =
 	
 (* Q26. *)
 let score ((ccl,pl,_): configuration): int =
-	let protagonist = der_list (tourner_list pl) in
+	let protagonist = List.hd pl in
 	List.fold_left (fun acc cc -> let ((i,_,_), col)=cc in
 																if col = protagonist then i+acc
 																else 0+acc
