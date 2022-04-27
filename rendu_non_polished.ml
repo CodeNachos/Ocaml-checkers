@@ -414,10 +414,58 @@ let est_partie (conf:configuration) (cpl:coup list): couleur =
 				rotated conf and the actual winner if there is. col is the player 
 				fold_left is iterating at *)
 			fun (acc_conf, acc_winner) col ->
-				(* keeps track of rotations *)
-				let conf = tourner_config acc_conf in 
-					if gagne (conf) then (conf, col)
-					else if acc_winner <> Libre then (conf,acc_winner) 
-					else (conf, Libre)
-		) (conf, Libre) (tourner_list pl) 
+				(* if the actual player wins then update accumulator *)
+				if gagne (conf) then (tourner_config acc_conf, col)
+				(* if the actual player does not win and theres a winner in the 
+					 accumulator it keeps the value recorded *)
+				else if acc_winner <> Libre then (tourner_config acc_conf,acc_winner) 
+				(* if the actual player does not win and theres no winner yet update the
+					 accumulator with the default value *)
+				else (conf, Libre)
+		) (conf, Libre) (pl) 
 	in snd(winner);;
+
+let conf = remplir_init [Code "p1"] 1 ;;
+affiche conf;;
+est_partie conf [
+										Du(((-2),1,1),((-1),1,0)); 
+										Du(((-1),1,0),(0,0,0)); 
+										Du((0,0,0),(1,(-1),0)); 
+										Du((1,(-1),0),(2,(-1),-1))
+									] ;;
+(* Output : - : couleur = Code "p1" *)
+
+(* Q29. *)
+
+let cases_voisines_losange (dim: dimension) ((i,j,k):case): case list =
+	(* neighboring cases of the given case *)
+	let cases_voisines = [
+												(i+1, j-1, k); (i+1, j, k-1); (i, j+1, k-1); 
+												(i, j-1, k+1); (i-1, j+1, k); (i-1, j, k+1)
+											 ] 
+	in List.fold_left (
+		fun acc c -> 
+			(* check if the case is in the reach of the player 
+					if true append to the accumulator else dont *)
+			if est_dans_losange c dim then c::acc else acc
+		) [] cases_voisines ;;
+
+let est_libre_case (conf:configuration) (c: case) =
+	(quelle_couleur c conf) = Libre ;;
+
+let partitionner_cases_voisines ((ccl,pl,dim): configuration) 
+																(c: case):
+																case list*case list =
+	List.partition (est_libre_case (ccl,pl,dim)) (cases_voisines_losange dim c) ;;
+
+let coups_unitaires_possibles (conf: configuration) (c:case): (case*case) list =
+	let cpl = fst (partitionner_cases_voisines conf c) in
+	List.map (fun cp -> (c,cp)) cpl;;
+
+coups_unitaires_possibles (remplir_init [Code "bob";Code "Ana"] 3) ((-3),0,3) ;;
+
+let sauts_multiples_possibles (conf:configuration) (c:case): case list list =
+;;
+
+let coup_possibles (conf:configuration) (c:case) -> (case*coup) list =
+	(coups_unitaires_possibles conf c) @ (sauts_multiples_possibles conf c) ;;
