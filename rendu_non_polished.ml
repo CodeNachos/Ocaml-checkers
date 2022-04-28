@@ -344,8 +344,9 @@ let est_libre_seg (c1:case)(c2:case)(conf:configuration):bool =
 
 (*Q.23*)
 let est_saut (c1:case)(c2:case)(conf:configuration):bool = 
-	let (_,dist) = vec_et_dist c1 c2 in
-		(dist = 2) && not (est_libre_seg c1 c2 conf) && 
+	let pivot = calcul_pivot c1 c2 in match pivot with
+	|None -> False
+	|Some cp -> (est_libre_seg c1 cp conf) && (est_libre_seg cp c2 conf) 
 		((quelle_couleur c2 conf) = Libre) ;;
 
 (*Q.24*)
