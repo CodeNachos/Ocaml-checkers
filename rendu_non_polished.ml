@@ -22,6 +22,7 @@ let indice_valide (x:int) (dim:dimension) : bool =
 let est_case ((i,j,k):case):bool=
  (i+j+k=0);;
 
+(*A REMPLIR*)
 let est_dans_etoile ((i, j, k) : case) (dim:dimension) : bool =
 	((i >= -dim && i <= 2*dim) &&  
 	(j >= -dim) &&
@@ -283,15 +284,6 @@ let remplir_init (pl: couleur list) (dim: dimension): configuration =
 		 else (triangleBas_coloree p1,pl,dim) ;;
 affiche (remplir_init [Code "Max"; Code "Raf"] 3);;
 
-(* A version that is not working just here to give potential ideas *)
-let remplir_init (lj:couleur list)(d:dimension):configuration = 
-  let rec final_list (lj) (d):case_coloree list= match lj with
-    | [] -> []
-    | e::ljp -> let (l,_,_)=tourner_config(((colorie(e)(remplir_triangle_bas (d)(-d-1,1,d))),lj,d)) in l@(final_list (ljp)(d))
-  in (final_list (lj) (d),lj,d)
-  ;;
- *)
-
 (*Q.17*)
 let quelle_couleur (c:case)(conf:configuration):couleur = 
 	let (ccol,_,_) = conf in 
@@ -343,11 +335,14 @@ let est_libre_seg (c1:case)(c2:case)(conf:configuration):bool =
 	in est_libre_case (ci+iv,cj+jv,ck+kv)(d-1) ;;   
 
 (*Q.23*)
-let est_saut (c1:case)(c2:case)(conf:configuration):bool = 
-	let pivot = calcul_pivot c1 c2 in match pivot with
-	|None -> False
-	|Some cp -> (est_libre_seg c1 cp conf) && (est_libre_seg cp c2 conf) 
-		((quelle_couleur c2 conf) = Libre) ;;
+let est_saut (c1:case) (c2:case) (conf:configuration):bool = 
+	let pivot = calcul_pivot c1 c2 in
+	match pivot with
+	| None -> false
+	| Some pivot -> (quelle_couleur pivot conf <> Libre) &&
+									(quelle_couleur c2 conf = Libre) &&
+									est_libre_seg c1 pivot conf &&
+				    			est_libre_seg pivot c2 conf ;;
 
 (*Q.24*)
 let rec est_saut_multiple (c:case list)(conf:configuration):bool = 
@@ -417,7 +412,7 @@ let est_partie (conf:configuration) (cpl:coup list): couleur =
 		) conf cpl
 	(* update conf *)
 	in let conf = (fin_ccl,pl,dim) 
-	(* Iterates through list of player from the 2nd veryfing if they have won *)
+	(* Iterates through list of player veryfing if they have won *)
 	in let winner = List.fold_left ( 
 			(* takes the couple (acc_conf,acc_winner) containing the track of the
 				rotated conf and the actual winner if there is. col is the player 
@@ -446,35 +441,38 @@ est_partie conf [
 
 (* Q29. *)
 
-let cases_voisines_losange (dim: dimension) ((i,j,k):case): case list =
+let cases_voisines ((i,j,k):case): case list =
 	(* neighboring cases of the given case *)
-	let cases_voisines = [
-												(i+1, j-1, k); (i+1, j, k-1); (i, j+1, k-1); 
-												(i, j-1, k+1); (i-1, j+1, k); (i-1, j, k+1)
-											 ] 
-	in List.fold_left (
-		fun acc c -> 
-			(* check if the case is in the reach of the player 
-					if true append to the accumulator else dont *)
-			if est_dans_losange c dim then c::acc else acc
-		) [] cases_voisines ;;
-
-let est_libre_case (conf:configuration) (c: case) =
-	(quelle_couleur c conf) = Libre ;;
-
-let partitionner_cases_voisines ((ccl,pl,dim): configuration) 
-																(c: case):
-																case list*case list =
-	List.partition (est_libre_case (ccl,pl,dim)) (cases_voisines_losange dim c) ;;
+	[
+		(i+1, j-1, k); (i+1, j, k-1); (i, j+1, k-1); 
+		(i, j-1, k+1); (i-1, j+1, k); (i-1, j, k+1)
+	 ] ;;
 
 let coups_unitaires_possibles (conf: configuration) (c:case): (case*case) list =
-	let cpl = fst (partitionner_cases_voisines conf c) in
-	List.map (fun cp -> (c,cp)) cpl;;
+	List.fold_left (
+		fun acc cv -> if est_coup_valide conf (Du(c,cv)) then (c,cv)::acc 
+									else acc
+	) [] (cases_voisines c) ;;
 
-coups_unitaires_possibles (remplir_init [Code "bob";Code "Ana"] 3) ((-3),0,3) ;;
+coups_unitaires_possibles (remplir_init [Code "bob";Code "Ana"] 3) ((-4),1,3) ;;
 
-let sauts_multiples_possibles (conf:configuration) (c:case): case list list =
-;;
+let rec find_sautSimple_direction ((ccl,pl,dim):configuration) (c1:case) (c2:case) (vect:vecteur): case option =
+	let cp = (translate c2 vect) in
+	if est_dans_losange cp dim then
+		if est_saut c1 cp (ccl,pl,dim) then Some cp
+		else find_sautSimple_direction (ccl,pl,dim) c1 cp vect
+	else None ;;
 
-let coup_possibles (conf:configuration) (c:case) -> (case*coup) list =
-	(coups_unitaires_possibles conf c) @ (sauts_multiples_possibles conf c) ;;
+find_sautSimple_direction (remplir_init [Code "bob";Code "Ana"] 3) ((-5),3,2) ((-4),3,1) (fst(vec_et_dist ((-5),3,2) ((-4),3,1)));;
+
+let sauts_simples_possibles ((ccl,pl,dim): configuration) (c: case): coup list =
+	let cases_voisines = cases_voisines c
+	in List.fold_left (
+		fun acc cv -> let vect_dest = fst (vec_et_dist c cv) in 
+			let dest = find_sautSimple_direction (ccl,pl,dim) c (translate c vect_dest) vect_dest in
+			match dest with
+			| None -> acc
+			| Some dest -> Sm ([c;dest])::acc 
+	) [] cases_voisines ;;
+
+sauts_simples_possibles (remplir_init [Code "bob";Code "Ana"] 3) ((-5),3,2) ;;
