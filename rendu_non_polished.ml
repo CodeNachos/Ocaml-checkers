@@ -22,7 +22,6 @@ let indice_valide (x:int) (dim:dimension) : bool =
 let est_case ((i,j,k):case):bool=
  (i+j+k=0);;
 
-(*A REMPLIR*)
 let est_dans_etoile ((i, j, k) : case) (dim:dimension) : bool =
 	((i >= -dim && i <= 2*dim) &&  
 	(j >= -dim) &&
@@ -283,6 +282,15 @@ let remplir_init (pl: couleur list) (dim: dimension): configuration =
 				get_conf_init rpl (tourner_config (triangleBas_coloree p1, pl, dim))
 		 else (triangleBas_coloree p1,pl,dim) ;;
 affiche (remplir_init [Code "Max"; Code "Raf"] 3);;
+
+(* A version that is not working just here to give potential ideas *)
+let remplir_init (lj:couleur list)(d:dimension):configuration = 
+  let rec final_list (lj) (d):case_coloree list= match lj with
+    | [] -> []
+    | e::ljp -> let (l,_,_)=tourner_config(((colorie(e)(remplir_triangle_bas (d)(-d-1,1,d))),lj,d)) in l@(final_list (ljp)(d))
+  in (final_list (lj) (d),lj,d)
+  ;;
+ *)
 
 (*Q.17*)
 let quelle_couleur (c:case)(conf:configuration):couleur = 
