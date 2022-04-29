@@ -465,36 +465,32 @@ let rec get_sautSimple_direction ((ccl,pl,dim):configuration) (c1:case) (c2:case
 
 get_sautSimple_direction (remplir_init [Code "bob";Code "Ana"] 3) ((-5),3,2) ((-4),3,1) (fst(vec_et_dist ((-5),3,2) ((-4),3,1)));;
 
-let sauts_simples_possibles ((ccl,pl,dim): configuration) (c: case): coup list =
+let sauts_simples_possibles ((ccl,pl,dim): configuration) (c: case): case list list =
 	let cases_voisines = cases_voisines c
 	in List.fold_left (
 		fun acc cv -> let vect_dest = fst (vec_et_dist c cv) in 
 			let dest = get_sautSimple_direction (ccl,pl,dim) c (translate c vect_dest) vect_dest in
 			match dest with
 			| None -> acc
-			| Some dest -> Sm ([c;dest])::acc 
+			| Some dest -> ([c;dest])::acc 
 	) [] cases_voisines ;;
 
 sauts_simples_possibles (remplir_init [Code "bob";Code "Ana"] 3) ((-5),3,2) ;;
 
-let rec sauts_consecutives ((ccl,pl,dim):configuration) (c:case): case list list =
-	let sauts_simples_list = sauts_simples_possibles (ccl,pl,dim) c in
-	match sauts_simples_list with
-	| [] -> []
-	| ssl -> List.fold_left (
-		fun acc_ssl ss -> 
-			match ss with 
-			| Sm ss -> (sauts_consecutives ((((der_list ss), Code "tmp")::ccl),pl,dim) (der_list ss)) @ ((ss)::acc_ssl)
-			| Du (a,b) -> acc_ssl
-	) [] ssl;;
 
-let concat_sauts_consecutives (scl: case list list) (c: case) =
+let rec sauts_possibles_case_list ((ccl,pl,dim):configuration) (c:case) : case list list =
+	let sauts_simples_de_c = sauts_simples_possibles (ccl,pl,dim) c in
 	List.fold_left (
-		fun acc cl -> 
-			if (List.hd cl) = c then acc@cl
-			else acc@((der_list acc)@[(der_list cl)])
-	) [[c]] scl
+		fun acc cl ->
+			acc @
+			List.map (fun scl -> (List.hd cl)::scl) (sauts_possibles_case_list (((der_list cl), Code "tmp")::ccl,pl,dim) (der_list cl))
+	) sauts_simples_de_c sauts_simples_de_c;;
 
+let caseListList_to_sautList (sl:case list list): coup list =
+	List.map (fun cl -> Sm cl) sl ;;
+
+let sauts_possibles (conf:configuration) (c:case): coup list = 
+	caseListList_to_sautList (sauts_possibles_case_list conf c) ;;
 
 let conf_test = ([((4, -1, -3), Code "Ana"); ((4, -2, -2), Code "Ana");
 ((4, (-3), (-1)), Code "Ana"); ((5, (-2), (-3)), Code "Ana");
@@ -504,7 +500,7 @@ let conf_test = ([((4, -1, -3), Code "Ana"); ((4, -2, -2), Code "Ana");
 (((-5), 3, 2), Code "bob"); (((-6), 3, 3), Code "bob")],
 [Code "bob"; Code "Ana"], 3) ;;
 
-concat_sauts_consecutives (sauts_consecutives conf_test ((-5),3,2)) ((-5),3,2) [[]];;
+sauts_possibles conf_test ((-5),3,2) ;;
 
 let coup_possibles (conf: configuration) (c:case): (case*coup) list =
 	let cp_list = (coups_unitaires_possibles conf c) @ (sauts_possibles conf c)
@@ -515,3 +511,38 @@ let coup_possibles (conf: configuration) (c:case): (case*coup) list =
 		) cp_list  ;;
 
 coup_possibles conf_test ((-5),3,2);;
+
+(* Q30. *)
+
+(* 
+	 get all cases of player 
+	 returnthe coup that returns the max of the coups that gives a max score from each case
+	 *)
+
+let max_score_coup_list (cpl: (case*coup) list): coup =
+	let dest_list = List.map (fun ccp -> fst ccp) cpl in
+	let max_score_dest = snd (List.fold_left (
+		fun (max, cp) c_dest ->
+			let (i,_,_)=c_dest in if i > max then (i,c_dest) else (max,cp)
+	) (0,List.hd dest_list) dest_list)
+	in snd (List.find (fun (c,cp) -> c = max_score_dest) cpl);;
+
+let coup_list_to_case_coup_list (cpl: coup list): (case*coup) list = 
+	List.map (
+		fun cp -> 
+			match cp with
+			| Du (c1,c2) -> (c2, Du(c1,c2))
+			| Sm cl -> ((der_list cl), Sm cl)
+	) cpl ;;
+
+let strategie_gloutonnne ((ccl,pl,dim):configuration): coup =
+	let protagonist = List.hd pl in
+	let protagonist_cases = List.filter (fun (c,col) -> col = protagonist) ccl in
+	let max_score_coup_per_case = List.fold_left (
+		fun max_list c ->
+			max_score_coup_list (coup_possibles (ccl,pl,dim) c) :: max_list
+	) [] (List.map (fun (c,col) -> c) protagonist_cases)
+	in let max_coup_list = coup_list_to_case_coup_list max_score_coup_per_case
+	in max_score_coup_list max_coup_list;; 
+
+strategie_gloutonnne (conf_test) ;;
